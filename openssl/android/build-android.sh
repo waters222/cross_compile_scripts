@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -u
+# set -u
 
 source ./_shared.sh
 
@@ -55,7 +55,7 @@ configure_make() {
 
   make clean
   
-  if make -j4; then
+  if make -j8; then
     # make install
     make install_sw
     make install_ssldirs

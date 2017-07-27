@@ -23,8 +23,9 @@ TOOLS_ROOT=`pwd`
 #     ANDROID_API=${ANDROID_API:-17}
 # fi
 ANDROID_API="android-17"
-ARCHS=("android" "android-armeabi" "android-x86" "android-mips")
-ABIS=("armeabi" "armeabi-v7a" "x86" "mips")
+# ARCHS=("android" "android-armeabi" "android-x86" "android-mips")
+ARCHS=("android" "android-armeabi" "android-x86")
+ABIS=("armeabi" "armeabi-v7a" "x86" "x86_64" "mips")
 # ANDROID_API=${ANDROID_API:-21}
 # ARCHS=("android" "android-armeabi" "android64-aarch64" "android-x86" "android64" "android-mips" "android-mips64")
 # ABIS=("armeabi" "armeabi-v7a" "arm64-v8a" "x86" "x86_64" "mips" "mips64")
@@ -40,42 +41,49 @@ configure() {
     export ARCH_FLAGS="-mthumb"
     export ARCH_LINK=""
     export TOOL="arm-linux-androideabi"
+    export TOOL_CHAIN_REF="arm-linux-androideabi-4.9"
     NDK_FLAGS="--arch=arm"
   elif [ "$ARCH" == "android-armeabi" ]; then
     export ARCH_FLAGS="-march=armv7-a -mfloat-abi=softfp -mfpu=vfpv3-d16 -mthumb -mfpu=neon"
     export ARCH_LINK="-march=armv7-a -Wl,--fix-cortex-a8"
     export TOOL="arm-linux-androideabi"
+    export TOOL_CHAIN_REF="arm-linux-androideabi-4.9"
     NDK_FLAGS="--arch=arm"
   elif [ "$ARCH" == "android64-aarch64" ]; then
     export ARCH_FLAGS=""
     export ARCH_LINK=""
     export TOOL="aarch64-linux-android"
+    export TOOL_CHAIN_REF="aarch64-linux-android-4.9"
     NDK_FLAGS="--arch=arm64"
   elif [ "$ARCH" == "android-x86" ]; then
-    export ARCH_FLAGS="-march=i686 -mtune=intel -msse3 -mfpmath=sse -m32"
+    export ARCH_FLAGS="-march=x86 -mtune=intel -msse3 -mfpmath=sse -m32"
     export ARCH_LINK=""
     export TOOL="i686-linux-android"
+    export TOOL_CHAIN_REF="x86-4.9"
     NDK_FLAGS="--arch=x86"
   elif [ "$ARCH" == "android64" ]; then
     export ARCH_FLAGS="-march=x86-64 -msse4.2 -mpopcnt -m64 -mtune=intel"
     export ARCH_LINK=""
     export TOOL="x86_64-linux-android"
+    export TOOL_CHAIN_REF="x86_64-4.9"
     NDK_FLAGS="--arch=x86_64"
-  # elif [ "$ARCH" == "android-mips" ]; then
-  #   export ARCH_FLAGS=""
-  #   export ARCH_LINK=""
-  #   export TOOL="mipsel-linux-android"
-  #   NDK_FLAGS="--arch=mips"
-  # elif [ "$ARCH" == "android-mips64" ]; then
-  #   export ARCH="linux64-mips64"
-  #   export ARCH_FLAGS=""
-  #   export ARCH_LINK=""
-  #   export TOOL="mips64el-linux-android"
-  #   NDK_FLAGS="--arch=mips64"
-  fi;
-  # echo "######################### Hello tootlchain root is "${TOOLCHAIN_ROOT}
-  # echo $NDK"/build/tools/make-standalone-toolchain.sh --toolchain=arm-linux-androideabi-4.9 --stl libc++ --install-dir="${TOOLCHAIN_ROOT} $NDK_FLAGS" --platform "${ANDROID_API}
-  [ -d ${TOOLCHAIN_ROOT} ] || $NDK/build/tools/make-standalone-toolchain.sh --platform=${ANDROID_API} --toolchain=arm-linux-androideabi-4.9 --stl=libc++ --install-dir=${TOOLCHAIN_ROOT} $NDK_FLAGS
+  elif [ "$ARCH" == "android-mips" ]; then
+    export ARCH_FLAGS=""
+    export ARCH_LINK=""
+    export TOOL="mipsel-linux-android-4.9"
+    export TOOL_CHAIN_REF="x86_64-4.9"
+    NDK_FLAGS="--arch=mips"
+  elif [ "$ARCH" == "android-mips64" ]; then
+    export ARCH="linux64-mips64"
+    export ARCH_FLAGS=""
+    export ARCH_LINK=""
+    export TOOL="mips64el-linux-android"
+    export TOOL_CHAIN_REF="mips64el-linux-android-4.9"
+    NDK_FLAGS="--arch=mips64"
+  fi;aarch64-linux-android-4.9
+  echo "######################### Hello tootlchain root is "${TOOLCHAIN_ROOT}
+  echo $NDK"/build/tools/make-standalone-toolchain.sh --toolchain="$TOOL_CHAIN_REF" --stl=libc++ --install-dir="${TOOLCHAIN_ROOT} $NDK_FLAGS" --platform="${ANDROID_API}
+  [ -d ${TOOLCHAIN_ROOT} ] || $NDK/build/tools/make-standalone-toolchain.sh --platform=${ANDROID_API} --toolchain=$TOOL_CHAIN_REF --stl=libc++ --install-dir=${TOOLCHAIN_ROOT} $NDK_FLAGS
 
   export TOOLCHAIN_PATH=${TOOLCHAIN_ROOT}/bin
   export NDK_TOOLCHAIN_BASENAME=${TOOLCHAIN_PATH}/${TOOL}
@@ -95,7 +103,7 @@ configure() {
   export STRIP=${NDK_TOOLCHAIN_BASENAME}-strip
   export CPPFLAGS=${CPPFLAGS:-""}
   export LIBS=${LIBS:-""}
-  export CFLAGS="${ARCH_FLAGS} -fpic -ffunction-sections -funwind-tables -fstack-protector -fno-strict-aliasing -finline-limit=64"
+  export CFLAGS="${ARCH_FLAGS} -D__ANDROID_API__=$API -fpic -ffunction-sections -funwind-tables -fstack-protector -fno-strict-aliasing -finline-limit=64"
   export CXXFLAGS="${CFLAGS} -std=c++11 -frtti -fexceptions"
   export LDFLAGS="${ARCH_LINK}"
   echo "**********************************************"
